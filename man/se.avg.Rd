@@ -32,7 +32,7 @@ se.avg(fit)
 
 }
 \references{
-Pfitzinger, J. (2021).
+Pfitzinger, J. (2022).
 Cluster Regularization via a Hierarchical Feature Regression.
 arXiv 2107.04831[statML]
 
@@ -41,7 +41,7 @@ Multimodel inference - understanding AIC and BIC in model selection.
 Sociological Methods & Research 33(2): 261-304.
 }
 \seealso{
-\code{cv.hfr}, \code{coef}, \code{plot} and \code{predict} methods
+\code{\link{hfr}} method
 }
 \author{
 Johann Pfitzinger

@@ -33,7 +33,7 @@
 #'
 #' @export
 #'
-#' @seealso \code{hfr}, \code{predict} and \code{coef} methods
+#' @seealso \code{\link{cv.hfr}}, \code{\link{predict}} and \code{\link{coef}} methods
 
 plot.cv.hfr <- function(
   x,
@@ -43,7 +43,7 @@ plot.cv.hfr <- function(
   ...
 ) {
 
-  if (!class(x) %in% c('cv.hfr'))
+  if (!inherits(x, 'cv.hfr'))
     stop("object must be of class 'cv.hfr'")
   if (is.null(kappa) && is.null(x$best_kappa))
     stop("must provide 'kappa'")

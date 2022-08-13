@@ -1,12 +1,13 @@
 
-#' @importFrom stats hclust cor quantile cutree as.dendrogram
+#' @importFrom stats hclust cor quantile cutree as.dendrogram as.dist
 #' @importFrom RcppArmadillo fastLmPure
 #' @importFrom quadprog solve.QP
-#' @importFrom dendextend set get_nodes_xy
+#' @importFrom dendextend set get_nodes_xy branches_attr_by_labels
 #' @importFrom RColorBrewer brewer.pal
 #' @importFrom graphics abline segments points mtext rect plot
+#' @importFrom corpcor pcor.shrink
 
-.get_level_reg <- function(x, y, nvars, nobs, q, intercept, ...) {
+.get_level_reg <- function(x, y, wts, nvars, nobs, q, intercept, partial_method, ...) {
 
   # Set default cluster method
   hclust_args <- match.call(expand.dots = F)$...
@@ -17,17 +18,31 @@
   corr <- stats::cor(x)
   cory <- stats::cor(x, y)
 
-  partial_r <- function(i, j) {
+  if (partial_method == "pairwise") {
 
-    coef <- (cory[i,] - cory[j,] * corr[i,j]) / sqrt((1 - cory[j,]^2) * (1 - corr[i,j]^2))
-    return(coef)
+    partial_r_pairwise <- function(i, j) {
+
+      coef <- (cory[i,] - cory[j,] * corr[i,j]) / sqrt((1 - cory[j,]^2) * (1 - corr[i,j]^2))
+      return(coef)
+
+    }
+    partr <- matrix(NA, nvars, nvars)
+    for (i in 1:nvars) for (j in 1:nvars) if (i != j) partr[i,j] <- partial_r_pairwise(i, j)
+
+    distmat <- stats::dist(partr)
+
+  } else if (partial_method == "shrinkage") {
+
+    partial_r_shrinkage <- function(j) {
+      out <- rep(NA, nvars)
+      out[-j] <- drop(corpcor::pcor.shrink(cbind(y, x[,-j]), verbose = F)[1,-1])
+      return(out)
+    }
+
+    partr <- sapply(1:ncol(x), partial_r_shrinkage)
+    distmat <- stats::as.dist(sqrt((partr - t(partr))^2))
 
   }
-  partr <- matrix(NA, nvars, nvars)
-  for (i in 1:nvars) for (j in 1:nvars) if (i != j) partr[i,j] <- partial_r(i, j)
-
-  # Create distance matrix
-  distmat <- stats::dist(partr)
 
   clust <- do.call(hclust, append(list(d = distmat), hclust_args))
 
@@ -45,7 +60,17 @@
 
     cut <- stats::cutree(clust, k = all_cuts[i])
     max_cut <- max(cut)
-    cut_fx <- function(row) as.numeric(row == cut) * sign(drop(cory))
+    cut_fx <- function(row) {
+      ix <- row == cut
+      if (sum(ix) == 1) {
+        return(as.numeric(ix))
+      } else {
+        signs <- sign(drop(crossprod(corr, as.numeric(ix))) - 1)
+        signs[signs == 0] <- 1
+        S_row <- as.numeric(ix) * signs
+        return(S_row)
+      }
+    }
     S_i <- lapply(1:max_cut, cut_fx)
     S_i <- t(sapply(S_i, function(x) x))
 
@@ -65,7 +90,7 @@
     if (intercept) {
 
       x_i <- cbind(1, X_list[[i]])
-      mod <- RcppArmadillo::fastLmPure(x_i, y)
+      mod <- RcppArmadillo::fastLmPure(x_i * wts, y * wts)
       mod_coef <- mod$coefficients
       mod_coef[is.na(mod_coef)] <- 0
       coef_list[[i]] <- c(mod_coef[1], t(S[[i]]) %*% mod_coef[-1])
@@ -74,7 +99,7 @@
     } else {
 
       x_i <- X_list[[i]]
-      mod <- RcppArmadillo::fastLmPure(x_i, y)
+      mod <- RcppArmadillo::fastLmPure(x_i * wts, y * wts)
       mod_coef <- mod$coefficients
       mod_coef[is.na(mod_coef)] <- 0
       coef_list[[i]] <- t(S[[i]]) %*% mod_coef
@@ -148,7 +173,9 @@
 
 }
 
-.draw_dendro <- function(clust, coefs, heights, explained_variance, var_names, df, details, max_leaf_size) {
+.draw_dendro <- function(clust, coefs, heights, explained_variance,
+                         var_names, df, details, max_leaf_size,
+                         dashed = NULL) {
 
   coefs_sizes <- abs(coefs)/max(abs(coefs))
   coefs_sizes <- coefs_sizes * max_leaf_size
@@ -163,6 +190,9 @@
   dend <- dendextend::set(dend, "leaves_pch", 15)
   dend <- dendextend::set(dend, "leaves_cex", coefs_sizes[clust$order])
   dend <- dendextend::set(dend, "leaves_col", coefs_col[clust$order])
+  if (!is.null(dashed)) {
+    dend <- dendextend::branches_attr_by_labels(dend, dashed, 3, "lty", "all")
+  }
 
   pal <- RColorBrewer::brewer.pal(9, "Blues")
   pal <- c("#FFFFFF", pal)

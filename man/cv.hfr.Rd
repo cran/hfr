@@ -7,12 +7,14 @@
 cv.hfr(
   x,
   y,
+  weights = NULL,
   kappa_grid = seq(0, 1, by = 0.1),
   q = NULL,
   intercept = TRUE,
   standardize = TRUE,
   nfolds = 10,
   foldid = NULL,
+  partial_method = c("pairwise", "shrinkage"),
   ...
 )
 }
@@ -20,6 +22,8 @@ cv.hfr(
 \item{x}{Input matrix or data.frame, of dimension \eqn{(N\times p)}{(N x p)}; each row is an observation vector.}
 
 \item{y}{Response variable.}
+
+\item{weights}{an optional vector of weights to be used in the fitting process. Should be NULL or a numeric vector. If non-NULL, weighted least squares is used for the level-specific regressions.}
 
 \item{kappa_grid}{A vector of target effective degrees of freedom of the regression.}
 
@@ -32,6 +36,8 @@ cv.hfr(
 \item{nfolds}{The number of folds for k-fold cross validation. Default is \code{nfolds=10}.}
 
 \item{foldid}{An optional vector of values between \code{1} and \code{nfolds} identifying what fold each observation is in. If supplied, \code{nfolds} can be missing.}
+
+\item{partial_method}{Indicate whether to use pairwise partial correlations, or shrinkage partial correlations.}
 
 \item{...}{Additional arguments passed to \code{hclust}.}
 }
@@ -62,12 +68,12 @@ coef(fit)
 
 }
 \references{
-Pfitzinger, J. (2021).
+Pfitzinger, J. (2022).
 Cluster Regularization via a Hierarchical Feature Regression.
 arXiv 2107.04831[statML]
 }
 \seealso{
-\code{hfr}, \code{coef} and \code{predict} methods
+\code{\link{hfr}}, \code{\link{coef}}, \code{\link{plot}} and \code{\link{predict}} methods
 }
 \author{
 Johann Pfitzinger

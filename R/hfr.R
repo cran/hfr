@@ -21,15 +21,17 @@
 #'
 #' @param x Input matrix or data.frame, of dimension \eqn{(N\times p)}{(N x p)}; each row is an observation vector.
 #' @param y Response variable.
+#' @param weights an optional vector of weights to be used in the fitting process. Should be NULL or a numeric vector. If non-NULL, weighted least squares is used for the level-specific regressions.
 #' @param kappa The target effective degrees of freedom of the regression as a percentage of \eqn{p}{p}.
 #' @param q Thinning parameter representing the quantile cut-off (in terms of contributed variance) above which to consider levels in the hierarchy. This can used to reduce the number of levels in high-dimensional problems. Default is no thinning.
 #' @param intercept Should intercept be fitted. Default is \code{intercept=TRUE}.
 #' @param standardize Logical flag for x variable standardization prior to fitting the model. The coefficients are always returned on the original scale. Default is \code{standardize=TRUE}.
+#' @param partial_method Indicate whether to use pairwise partial correlations, or shrinkage partial correlations.
 #' @param ...  Additional arguments passed to \code{hclust}.
 #' @return An 'hfr' regression object.
 #' @author Johann Pfitzinger
 #' @references
-#' Pfitzinger, J. (2021).
+#' Pfitzinger, J. (2022).
 #' Cluster Regularization via a Hierarchical Feature Regression.
 #' arXiv 2107.04831[statML]
 #'
@@ -41,7 +43,7 @@
 #'
 #' @export
 #'
-#' @seealso \code{cv.hfr}, \code{coef}, \code{plot} and \code{predict} methods
+#' @seealso \code{\link{cv.hfr}}, \code{\link{se.avg}}, \code{\link{coef}}, \code{\link{plot}} and \code{\link{predict}} methods
 #'
 #' @importFrom stats sd
 
@@ -49,10 +51,12 @@
 hfr <- function(
   x,
   y,
+  weights = NULL,
   kappa = 1,
   q = NULL,
   intercept = TRUE,
   standardize = TRUE,
+  partial_method = c("pairwise", "shrinkage"),
   ...
   ) {
 
@@ -81,10 +85,24 @@ hfr <- function(
     stop("'kappa' must be between 0 and 1")
   }
 
+  if (!is.null(weights)) {
+    if (length(weights) != nobs)
+      stop("'weights' must have same length as 'y'")
+    if (any(is.na(weights)))
+      stop("'NA' values in 'weights'")
+    if (any(weights < 0))
+      stop("'weights' can only contain positive numerical values")
+    wts <- sqrt(weights)
+  } else {
+    wts <- rep(1, nobs)
+  }
+
+  partial_method = match.arg(partial_method)
+
   # Get feature names
   var_names <- colnames(x)
   if (is.null(var_names)) var_names <- paste("X", 1:ncol(x), sep = ".")
-  if (intercept) var_names <- c("intercept", var_names)
+  if (intercept) var_names <- c("(Intercept)", var_names)
 
   # Convert 'x' to matrix
   x <- data.matrix(x)
@@ -108,7 +126,7 @@ hfr <- function(
     xs <- x
   }
 
-  v = .get_level_reg(xs, y, nvars, nobs, q, intercept, ...)
+  v = .get_level_reg(xs, y, wts, nvars, nobs, q, intercept, partial_method, ...)
   meta_opt <- .get_meta_opt(y, kappa, nvars, nobs, var_names, standardize, intercept, standard_sd, standard_mean, v)
 
   beta <- drop(meta_opt$beta)

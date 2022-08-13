@@ -14,7 +14,7 @@
 #' @return A vector of standard errors.
 #' @author Johann Pfitzinger
 #' @references
-#' Pfitzinger, J. (2021).
+#' Pfitzinger, J. (2022).
 #' Cluster Regularization via a Hierarchical Feature Regression.
 #' arXiv 2107.04831[statML]
 #'
@@ -30,7 +30,7 @@
 #'
 #' @export
 #'
-#' @seealso \code{cv.hfr}, \code{coef}, \code{plot} and \code{predict} methods
+#' @seealso \code{\link{hfr}} method
 #'
 #' @importFrom stats sd
 
@@ -39,7 +39,7 @@ se.avg <- function(
   object
 ) {
 
-  if (class(object)!="hfr")
+  if (!inherits(object, "hfr"))
     stop("object must be of class 'hfr'")
 
   standardize <- object$call$standardize
