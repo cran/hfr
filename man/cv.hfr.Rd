@@ -8,13 +8,14 @@ cv.hfr(
   x,
   y,
   weights = NULL,
-  kappa_grid = seq(0, 1, by = 0.1),
+  kappa = seq(0, 1, by = 0.1),
   q = NULL,
   intercept = TRUE,
   standardize = TRUE,
   nfolds = 10,
   foldid = NULL,
   partial_method = c("pairwise", "shrinkage"),
+  ridge_lambda = 0,
   ...
 )
 }
@@ -25,7 +26,7 @@ cv.hfr(
 
 \item{weights}{an optional vector of weights to be used in the fitting process. Should be NULL or a numeric vector. If non-NULL, weighted least squares is used for the level-specific regressions.}
 
-\item{kappa_grid}{A vector of target effective degrees of freedom of the regression.}
+\item{kappa}{A vector of target effective degrees of freedom of the regression.}
 
 \item{q}{Thinning parameter representing the quantile cut-off (in terms of contributed variance) above which to consider levels in the hierarchy. This can used to reduce the number of levels in high-dimensional problems. Default is no thinning.}
 
@@ -38,6 +39,8 @@ cv.hfr(
 \item{foldid}{An optional vector of values between \code{1} and \code{nfolds} identifying what fold each observation is in. If supplied, \code{nfolds} can be missing.}
 
 \item{partial_method}{Indicate whether to use pairwise partial correlations, or shrinkage partial correlations.}
+
+\item{ridge_lambda}{Optional penalty for level-specific regressions (useful in high-dimensional case)}
 
 \item{...}{Additional arguments passed to \code{hclust}.}
 }
@@ -63,7 +66,7 @@ of the cross validation is given by \code{best_kappa} in the output object.
 \examples{
 x = matrix(rnorm(100 * 20), 100, 20)
 y = rnorm(100)
-fit = cv.hfr(x, y, kappa_grid = seq(0, 1, by = 0.1))
+fit = cv.hfr(x, y, kappa = seq(0, 1, by = 0.1))
 coef(fit)
 
 }
