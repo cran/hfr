@@ -1,6 +1,6 @@
-262f8bb3171849de2d9031fc4b3e1d15 *DESCRIPTION
+70061bb83bc46a042898b9eaaad56e79 *DESCRIPTION
 22c15c515637a3d36f2fecb7828f6ab0 *NAMESPACE
-ad26ddae910812fb4a74d9e9820ead25 *NEWS.md
+6b7517d0d385b7995c001c0b95ff710a *NEWS.md
 5355f55fda301d636b53afb3f9d31e9d *R/cv.hfr.R
 f047412d9baf7e9a8b071ad721bf8213 *R/hfr.R
 e9a96e0d082440616fac90af40e17b29 *R/internal.R
@@ -10,7 +10,7 @@ e9a96e0d082440616fac90af40e17b29 *R/internal.R
 ee4be5d9f00ef12ada30c4cd6c1e8e24 *R/predict.hfr.R
 fc3ded268ec3e10cdc62603c5bdc4a61 *R/print.cv.hfr.R
 372e8635af68357a0e2596255a925bc4 *R/print.hfr.R
-0f64d590e4b3456b8efe875b6ac53434 *R/se.avg.R
+14fe7c323036be61347b27783ae36da4 *R/se.avg.R
 494a825827ee1e6f1ee74c018448c6ff *man/cv.hfr.Rd
 e9f1ee0300ec7cbec025df2d00b33df4 *man/hfr.Rd
 99893905c129a55b9e727476be024f8f *man/plot.cv.hfr.Rd
