@@ -13,7 +13,7 @@ hfr(
   intercept = TRUE,
   standardize = TRUE,
   partial_method = c("pairwise", "shrinkage"),
-  ridge_lambda = 0,
+  l2_penalty = 0,
   ...
 )
 }
@@ -34,7 +34,7 @@ hfr(
 
 \item{partial_method}{Indicate whether to use pairwise partial correlations, or shrinkage partial correlations.}
 
-\item{ridge_lambda}{Optional penalty for level-specific regressions (useful in high-dimensional case)}
+\item{l2_penalty}{Optional penalty for level-specific regressions (useful in high-dimensional case)}
 
 \item{...}{Additional arguments passed to \code{hclust}.}
 }
@@ -51,7 +51,12 @@ regression parameters and a reduction in the effective model degrees of freedom.
 Shrinkage can be imposed by targeting an explicit effective degrees of freedom.
 Setting the argument \code{kappa} to a value between \code{0} and \code{1} controls
 the effective degrees of freedom of the fitted object as a percentage of \eqn{p}{p}.
+When \code{kappa} is \code{1} the result is equivalent to the result from an ordinary
+least squares regression (no shrinkage). Conversely, \code{kappa} set to \code{0}
+represents maximum shrinkage.
+
 When \eqn{p > N}{p > N} \code{kappa} is a percentage of \eqn{(N - 2)}{(N - 2)}.
+
 If no \code{kappa} is set, a linear regression with \code{kappa = 1} is
 estimated.
 
@@ -61,6 +66,9 @@ ward.D2 clustering but can be overridden by passing a method argument to \code{.
 For high-dimensional problems, the hierarchy becomes very large. Setting \code{q} to a value below 1
 reduces the number of levels used in the hierarchy. \code{q} represents a quantile-cutoff of the amount of
 variation contributed by the levels. The default (\code{q = NULL}) considers all levels.
+
+When data exhibits multicollinearity it can be useful to include a penalty on the l2 norm in the level-specific regressions.
+This can be achieved by setting the \code{l2_penalty} parameter.
 }
 \examples{
 x = matrix(rnorm(100 * 20), 100, 20)
@@ -70,9 +78,7 @@ coef(fit)
 
 }
 \references{
-Pfitzinger, J. (2022).
-Cluster Regularization via a Hierarchical Feature Regression.
-arXiv 2107.04831[statML]
+Pfitzinger, Johann (2024). Cluster Regularization via a Hierarchical Feature Regression. _Journal of Econometrics and Statistics_ (in press). URL https://doi.org/10.1016/j.ecosta.2024.01.003.
 }
 \seealso{
 \code{\link{cv.hfr}}, \code{\link{se.avg}}, \code{\link{coef}}, \code{\link{plot}} and \code{\link{predict}} methods

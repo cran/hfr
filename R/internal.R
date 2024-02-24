@@ -43,7 +43,7 @@
 
   }
 
-  if (nvars > 2) {
+  if (nvars > 2 & !any(is.na(distmat))) {
     clust <- do.call(hclust, append(list(d = distmat), hclust_args))
   } else {
     clust <- do.call(hclust, append(list(d = stats::dist(corr)), hclust_args))
@@ -68,7 +68,7 @@
       if (sum(ix) == 1) {
         return(as.numeric(ix))
       } else {
-        signs <- sign(drop(crossprod(corr, as.numeric(ix))) - 1)
+        signs <- sign(drop(stats::cor(x, y)))
         signs[signs == 0] <- 1
         S_row <- as.numeric(ix) * signs
         return(S_row)

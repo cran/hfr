@@ -15,7 +15,7 @@ cv.hfr(
   nfolds = 10,
   foldid = NULL,
   partial_method = c("pairwise", "shrinkage"),
-  ridge_lambda = 0,
+  l2_penalty = 0,
   ...
 )
 }
@@ -40,7 +40,7 @@ cv.hfr(
 
 \item{partial_method}{Indicate whether to use pairwise partial correlations, or shrinkage partial correlations.}
 
-\item{ridge_lambda}{Optional penalty for level-specific regressions (useful in high-dimensional case)}
+\item{l2_penalty}{Optional penalty for level-specific regressions (useful in high-dimensional case)}
 
 \item{...}{Additional arguments passed to \code{hclust}.}
 }
@@ -71,9 +71,7 @@ coef(fit)
 
 }
 \references{
-Pfitzinger, J. (2022).
-Cluster Regularization via a Hierarchical Feature Regression.
-arXiv 2107.04831[statML]
+Pfitzinger, Johann (2024). Cluster Regularization via a Hierarchical Feature Regression. _Journal of Econometrics and Statistics_ (in press). URL https://doi.org/10.1016/j.ecosta.2024.01.003.
 }
 \seealso{
 \code{\link{hfr}}, \code{\link{coef}}, \code{\link{plot}} and \code{\link{predict}} methods
