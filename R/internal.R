@@ -117,6 +117,14 @@
 
   coef_mat <- sapply(coef_list, function(x) x)
 
+  # add intercept level
+  if (intercept) {
+    coef_mat <- cbind(coef_mat, c(mean(y), rep(0, nvars)))
+    mod_list[[nvars + 1]] <- list(coefficients = mean(y), stderr = sd(y)/sqrt(nobs))
+    fit_mat <- cbind(fit_mat, mean(y))
+    dof <- c(dof+1, 1)
+  }
+
   return(list(
     coef_mat = coef_mat,
     mod_list = mod_list,
@@ -143,12 +151,27 @@
   opt_par_mat <- c()
   for (i in 1:grid_size) {
 
-    dof_constraint <- 1e-4 + kappa[i] * (min(nvars, nobs-2)-1e-4-1e-8)
-    opt <- quadprog::solve.QP(Dmat = Dmat,
-                              dvec = dvec,
-                              Amat = cbind(v$dof, Amat),
-                              bvec = c(dof_constraint, bvec),
-                              meq = 1)
+    dof_constraint <- intercept + kappa[i] * (min(nvars, nobs-2)-1e-8)
+    for (eps in c(1e-7, 1e-6, 1e-5, 1e-4, 1e-3, 1e-2)) {
+      success <- tryCatch(
+        {
+          opt <- quadprog::solve.QP(Dmat = Dmat,
+                             dvec = dvec,
+                             Amat = cbind(v$dof, rep(-1, nvars+intercept), rep(1, nvars+intercept), Amat),
+                             bvec = c(dof_constraint, -1-eps, 1-eps, bvec),
+                             meq = 1)
+          TRUE
+        },
+        error = function(cond) {
+          FALSE
+        }
+      )
+      if (success)
+        break
+    }
+    if (!success)
+      stop("optimization failed. check the input data.")
+
 
     opt_par <- opt$solution
 
@@ -226,8 +249,12 @@
   Xy <- crossprod(X, y)
   invXX <- solve(XX + lambda * n * diag(p))
   beta <- drop(invXX %*% Xy)
-  var_hat <- sum((y - X %*% beta)^2) / (n - p)
-  std_err <- sqrt(diag(invXX * var_hat))
+  if (n > p) {
+    var_hat <- sum((y - X %*% beta)^2) / (n - p)
+    std_err <- sqrt(diag(invXX * var_hat))
+  } else {
+    std_err <- rep(NA, length(beta))
+  }
   return(list(coefficients = beta, stderr = std_err))
 
 }
